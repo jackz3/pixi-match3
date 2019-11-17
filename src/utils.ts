@@ -1,6 +1,9 @@
 export function center (displable:PIXI.Sprite, width:number, height:number, startX:number = 0, startY:number = 0) {
-  displable.x = (width - displable.width) / 2 + startX
+  hCenter(displable, width, startX)
   displable.y = (height - displable.height) / 2 + startY
+}
+export function hCenter (displable:PIXI.Sprite, width:number, startX:number = 0) {
+  displable.x = (width - displable.width) / 2 + startX
 }
 
 export interface IPixiSpriteSheet {
@@ -8,7 +11,7 @@ export interface IPixiSpriteSheet {
   meta:any
 }
 
-export function generateQuads (sheetData:IPixiSpriteSheet, baseWidth:number, baseHeight:number, tilewidth:number, tileheight:number, name:string) {
+export function generateQuads (sheetData:IPixiSpriteSheet, baseWidth:number, baseHeight:number, tilewidth:number, tileheight:number, name:string = '') {
   const sheetWidth = baseWidth / tilewidth
   const sheetHeight = baseHeight / tileheight
 
@@ -61,4 +64,12 @@ export function aabbCollision (x1:number, y1:number, w1:number, h1:number, x2:nu
          x2 < x1+w1 &&
          y1 < y2+h2 &&
          y2 < y1+h1
+}
+
+export function rand(to:number, from:number = 0) {
+  return Math.floor(Math.random() * to) + from
+}
+
+export function rgbToNum (r:number, g:number, b:number) {
+  return (r << 16) + (g << 8) + b
 }

@@ -1,8 +1,13 @@
 import * as PIXI from 'pixi.js'
 import TWEEN from '@tweenjs/tween.js'
-import {Screen, VirtualScreen} from './constants'
-import Input from './input'
+import {Screen, VirtualScreen, BACKGROUND_SCROLL_SPEED} from './constants'
+// import Input from './input'
 import {IPixiSpriteSheet, generateQuads} from './utils'
+import global from './global'
+import StartState from './states/StartState'
+import BeginGameState from './states/BeginGameState'
+import PlayState from './states/PlayState'
+import GameOverState from './states/GameOverState'
 
 const app = new PIXI.Application({
   ...Screen
@@ -11,15 +16,13 @@ document.body.appendChild(app.view)
 PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 app.stage.scale.set(Screen.width / VirtualScreen.width, Screen.height / VirtualScreen.height)
 
-const inp = new Input()
-const highLightG = new PIXI.Graphics()
-const global:any = {}
-let highlightedTile = false
-let [highlightedX, highlightedY] = [0, 0]
-const offsetX = 128
-const offsetY = 16
-let selectedTile:Tile
-let board:Tile[][]
+const bgTexture = PIXI.Texture.from('../assets/background.png')
+const bgSprite = PIXI.Sprite.from(bgTexture)
+app.stage.addChild(bgSprite)
+const boardContainer = new PIXI.Container()
+app.stage.addChild(boardContainer)
+
+let backgroundX = 0
 
 const spriteSheetData:IPixiSpriteSheet = {
   frames: {},
@@ -30,25 +33,61 @@ const spriteSheetData:IPixiSpriteSheet = {
     // "scale": "1"
   }
 }
+
+function generateTileQuads (frames:{[tile:string]:PIXI.Texture}) {
+  const tiles:PIXI.Texture[][] = []
+  let counter = 1
+  let idx = 0
+  for (let row = 0; row < 9; row++) {
+    for (let i = 0; i < 2; i++) {
+      tiles[idx] = []
+      for (let col = 0; col < 6; col++) {
+        tiles[idx].push(frames[`quads${counter}`])
+        counter++
+      }
+      idx++
+    }
+  }
+  return tiles
+}
 const baseTexture = PIXI.BaseTexture.from('../assets/match3.png')
 generateQuads(spriteSheetData, 384, 288, 32, 32, 'quads')
 const spriteSheet = new PIXI.Spritesheet(baseTexture, spriteSheetData)
 spriteSheet.parse(frames => {
-  global.frames = {...global.frames, ...frames}
-
-  board = generateBoard()
-  app.stage.addChild(highLightG)
-  selectedTile = board[0][0]
+  global.frames.tiles = generateTileQuads(frames)
+  global.stateMachine.states = {
+    'start': new StartState(app.stage),
+    'begin-game': new BeginGameState(boardContainer),
+    'play': new PlayState(app.stage),
+    'game-over': new GameOverState(app.stage)
+  }
+  global.stateMachine.change('start')
+  // board = generateBoard()
+  // app.stage.addChild(highLightG)
+  // selectedTile = board[0][0]
 
   app.ticker.add((delta) => {
-    drawBoard(offsetX, offsetY, board)
+    // drawBoard(offsetX, offsetY, board)
+    backgroundX = backgroundX - BACKGROUND_SCROLL_SPEED * delta / 60
+    if (backgroundX <= -1024 + VirtualScreen.width - 4 + 51) {
+      backgroundX = 0
+    }
+    bgSprite.x = backgroundX
+    global.stateMachine.update(delta)
+    global.stateMachine.render()
     TWEEN.update()
-    // global.stateMachine.update(delta)
-    // global.stateMachine.render()
-    // inp.keyPressedSet.clear()
+    global.input.keyPressedSet.clear()
   })
 })
 
+
+const highLightG = new PIXI.Graphics()
+let highlightedTile = false
+let [highlightedX, highlightedY] = [0, 0]
+const offsetX = 128
+const offsetY = 16
+let selectedTile:Tile
+let board:Tile[][]
 interface Tile {x:number, y:number, gridX:number, gridY:number, tile:number, sprite:PIXI.Sprite}
 function generateBoard () {
   const tiles:Tile[][] = []
@@ -57,27 +96,10 @@ function generateBoard () {
     tiles.push([])
     for (let x = 0; x < 8; x++) {
       const tileId = Math.ceil(Math.random() * Object.keys(global.frames).length)
-      const sprite = PIXI.Sprite.from(global.frames[`quads${tileId}`])
-      const tile = {
-            x: x * 32,
-            y: y * 32,
-            // -- now we need to know what tile X and Y this tile is
-            gridX: x,
-            gridY: y,
-            // -- assign a random ID to tile to make it a random tile
-            tile: tileId,
-            sprite: sprite
-      }
-      tiles[y].push(tile)
-      sprite.x = tile.x + offsetX
-      sprite.y = tile.y + offsetY
-      app.stage.addChild(sprite)
     }
   }
   return tiles
 }
-
-
 function drawBoard (offsetX:number, offsetY:number, board:Tile[][]) {
   highLightG.clear()
   for (let y = 0; y < 8; y++) {
@@ -100,13 +122,7 @@ function drawBoard (offsetX:number, offsetY:number, board:Tile[][]) {
   highLightG.lineStyle(4, 0xF00000, 234 / 255)
   highLightG.drawRoundedRect(selectedTile.x + offsetX, selectedTile.y + offsetY, 32, 32, 4)
 }
-
-inp.keyPressed = function (key) {
-    // if key == 'escape' then
-    //     love.event.quit()
-    // end
-
-    // -- double assignment; Lua shortcut
+const keyPressed = function (key:string) {
   let [x, y] = [selectedTile.gridX, selectedTile.gridY]
 
   // -- input handling, staying constrained within the bounds of the grid
@@ -149,8 +165,6 @@ inp.keyPressed = function (key) {
       board[tile2.gridY][tile2.gridX] = tempTile
 
         // -- swap coordinates and tile grid positions
-      // ;[tile2.x, tile2.y] = [tile1.x, tile1.y]
-      // ;[tile1.x, tile1.y] = [tempX, tempY]
       const twnTile2 = new TWEEN.Tween(tile2).to({x: tile1.x, y: tile1.y}, 200).start()
       const twnTile1 = new TWEEN.Tween(tile1).to({x: tempX, y: tempY}, 200).start()
 
@@ -159,7 +173,6 @@ inp.keyPressed = function (key) {
 
         // -- unhighlight
       highlightedTile = false
-
         // -- reset selection because of the swap
       selectedTile = tile2
     }
