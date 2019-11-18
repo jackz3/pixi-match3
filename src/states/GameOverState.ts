@@ -6,7 +6,7 @@ import { VirtualScreen } from '../constants'
 export default class GameOverState extends BaseState {
   score = 0
   gameoverG = new PIXI.Graphics()
-  goTxt = new PIXI.Text('GAME OVER', {fontSize: 28, fill: 'rgb(99,155,255)'})
+  goTxt = new PIXI.Text('GAME\nOVER', {fontSize: 28, fill: 'rgb(99,155,255)', align: 'center'})
   scoreTxt = new PIXI.Text('', {fontSize: 14, fill: 'rgb(99,155,255)'})
   msgTxt = new PIXI.Text('Press Enter', {fontSize: 14})
   constructor (public container:PIXI.Container) {

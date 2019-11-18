@@ -63,6 +63,8 @@ export default class StartState extends BaseState{
       this.container.addChild(txt)
     }
     this.container.addChild(this.topG)
+    this.transitionAlpha = 0
+    this.pauseInput = false
   }
   exit () {
     this.container.removeChild(this.topG)

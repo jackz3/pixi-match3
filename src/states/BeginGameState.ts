@@ -22,6 +22,7 @@ export default class BeginGameState extends BaseState {
     this.container.addChild(this.levelTxt)
     this.container.visible = true
     this.level = params.level
+    this.levelLabelY = -64
     // -- animate our white screen fade-in, then animate a drop-down with
     // -- the level text
     new TWEEN.Tween(this).to({transitionAlpha: 0}, 1000).start()

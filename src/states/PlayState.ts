@@ -22,8 +22,8 @@ export default class PlayState extends BaseState {
   level = 0
   board!:Board
   scoreGoal = 9999999
-  hlTimer:NodeJS.Timeout
-  countDownTimer:NodeJS.Timeout
+  hlTimer!:NodeJS.Timeout
+  countDownTimer!:NodeJS.Timeout
   playG = new PIXI.Graphics()
   levelTxt = new PIXI.Text('', {fontSize: 14, fill: 'rgb(99, 155, 255)'})
   scoreTxt = new PIXI.Text('', {fontSize: 14, fill: 'rgb(99, 155, 255)'})
@@ -31,16 +31,6 @@ export default class PlayState extends BaseState {
   timerTxt = new PIXI.Text('', {fontSize: 14, fill: 'rgb(99, 155, 255)'})
   constructor (public container:PIXI.Container) {
     super()
-    this.hlTimer = setInterval(() => {
-      // this.
-      this.rectHighlighted = !this.rectHighlighted
-    }, 500)
-    this.countDownTimer = setInterval(() => {
-      this.timer -= 1
-      if (this.timer <= 5) {
-            // gSounds['clock']:play()
-      }
-    }, 1000)
   }
   enter (params:any) {
     this.level = params.level
@@ -55,6 +45,16 @@ export default class PlayState extends BaseState {
     this.container.addChild(this.scoreTxt)
     this.container.addChild(this.goalTxt)
     this.container.addChild(this.timerTxt)
+    this.timer = 60
+    this.hlTimer = setInterval(() => {
+      this.rectHighlighted = !this.rectHighlighted
+    }, 500)
+    this.countDownTimer = setInterval(() => {
+      this.timer--
+      if (this.timer <= 5) {
+            // gSounds['clock']:play()
+      }
+    }, 1000)
   }
   exit () {
     this.container.removeChild(this.playG)
@@ -109,9 +109,8 @@ export default class PlayState extends BaseState {
         // -- if we've pressed enter, to select or deselect a tile...
       if (global.input.keyPressedSet.has('Enter')) {
         // -- if same tile as currently highlighted, deselect
-        let x = this.boardHighlightX + 1
-        let y = this.boardHighlightY + 1
-            
+        let x = this.boardHighlightX
+        let y = this.boardHighlightY
         // -- if nothing is highlighted, highlight current tile
         if (!this.highlightedTile) {
           this.highlightedTile = this.board.tiles[y][x]
@@ -128,7 +127,7 @@ export default class PlayState extends BaseState {
           let tempX = this.highlightedTile.gridX
           let tempY = this.highlightedTile.gridY
 
-          let newTile = this.board.tiles[y][x]
+          let newTile = this.board.tiles[y][x] as Tile
           this.highlightedTile.gridX = newTile.gridX
           this.highlightedTile.gridY = newTile.gridY
           newTile.gridX = tempX
@@ -162,7 +161,8 @@ export default class PlayState extends BaseState {
         // love.graphics.setColor(255, 255, 255, 96)
         // love.graphics.rectangle('fill', (self.highlightedTile.gridX - 1) * 32 + (VIRTUAL_WIDTH - 272),  (self.highlightedTile.gridY - 1) * 32 + 16, 32, 32, 4)
       this.playG.beginFill(0xFFFFFF, 96 / 255)
-      this.playG.drawRoundedRect((this.highlightedTile.gridX - 1) * 32 + (VirtualScreen.width - 272), (this.highlightedTile.gridY - 1) * 32 + 16, 32, 32, 4)
+      this.playG.drawRoundedRect((this.highlightedTile.gridX) * 32 + (VirtualScreen.width - 272), (this.highlightedTile.gridY) * 32 + 16, 32, 32, 4)
+      this.playG.endFill()
         // -- back to alpha
         // love.graphics.setBlendMode('alpha')
     }
@@ -189,17 +189,17 @@ export default class PlayState extends BaseState {
     this.playG.endFill()
 
     this.levelTxt.text = `Level: ${this.level}`
-    this.levelTxt.x = 20
     this.levelTxt.y = 24
+    hCenter(this.levelTxt, 182, 20)
     this.scoreTxt.text = `Score: ${this.score}`
-    this.scoreTxt.x = 20
     this.scoreTxt.y = 52
+    hCenter(this.scoreTxt, 182, 20)
     this.goalTxt.text = `Goal : ${this.scoreGoal}`
-    this.goalTxt.x = 20
     this.goalTxt.y = 80
+    hCenter(this.goalTxt, 182, 20)
     this.timerTxt.text = `Timer: ${this.timer}`
-    this.timerTxt.x = 20
     this.timerTxt.y = 108
+    hCenter(this.timerTxt, 182, 20)
     // love.graphics.setColor(99, 155, 255, 255)
     // love.graphics.setFont(gFonts['medium'])
     // love.graphics.printf('Level: ' .. tostring(self.level), 20, 24, 182, 'center')
