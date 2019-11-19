@@ -46,6 +46,8 @@ export default class PlayState extends BaseState {
     this.container.addChild(this.goalTxt)
     this.container.addChild(this.timerTxt)
     this.timer = 60
+    this.boardHighlightX = 0
+    this.boardHighlightY = 0
     this.hlTimer = setInterval(() => {
       this.rectHighlighted = !this.rectHighlighted
     }, 500)
@@ -139,7 +141,8 @@ export default class PlayState extends BaseState {
                 // -- tween coordinates between the two so they swap
             new TWEEN.Tween(this.highlightedTile).to({x: newTile.x, y: newTile.y}, 100).start()
               .onComplete(() => {
-                // this.calculateMatches()
+                this.highlightedTile = undefined
+                this.calculateMatches()
               })
             new TWEEN.Tween(newTile).to({x: this.highlightedTile.x, y: this.highlightedTile.y}, 100).start()
                 // Timer.tween(0.1, {
@@ -227,6 +230,16 @@ export default class PlayState extends BaseState {
 
         // -- gets a table with tween values for tiles that should now fall
       let tilesToFall = this.board.getFallingTiles()
+      const len = tilesToFall.length;
+      if (len > 0) {
+        new TWEEN.Tween(tilesToFall[0]).to(tilesToFall[0], 250).start()
+          .onComplete(() => {
+            // this.calculateMatches()
+          })
+      }
+      for (let i = 1; i < len; i++) {
+        new TWEEN.Tween(tilesToFall[i].obj).to(tilesToFall[i].to, 250).start()
+      }
         // -- tween new tiles that spawn from the ceiling over 0.25s to fill in
         // -- the new upper gaps that exist
         // Timer.tween(0.25, tilesToFall):finish(function()

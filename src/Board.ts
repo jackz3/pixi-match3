@@ -3,7 +3,7 @@ import {rand} from './utils'
 import Tile from './Tile'
 
 export default class Board {
-  matches:Tile[][] = []
+  matches:(Tile|undefined)[][] = []
   tiles:(Tile|undefined)[][] = []
   constructor (public x:number, public y:number, public container:PIXI.Container) {
     this.initializeTiles()
@@ -32,22 +32,22 @@ export default class Board {
     let matchNum = 1
     // -- horizontal matches first
     for (let y = 0; y < 8; y++) {
-      let colorToMatch = this.tiles[y][0].color
+      let colorToMatch = this.tiles[y][0]!.color
       matchNum = 1
         // -- every horizontal tile
       for (let x = 1; x < 8; x++) {
         // -- if this is the same color as the one we're trying to match...
 
-        if (this.tiles[y][x].color === colorToMatch) {
+        if (this.tiles[y][x]!.color === colorToMatch) {
           matchNum++
         } else {
                 // -- set this as the new color we want to watch for
-          colorToMatch = this.tiles[y][x].color
+          colorToMatch = this.tiles[y][x]!.color
           // -- if we have a match of 3 or more up to now, add it to our matches table
           if (matchNum >= 3) {
             let match = []
                     // -- go backwards from here by matchNum
-            for (let x2 = x - 1; x2 >= (x - matchNum); x--) {
+            for (let x2 = x - 1; x2 >= (x - matchNum); x2--) {
                         // -- add each tile to the match that's in that match
               match.push(this.tiles[y][x2])
                         // table.insert(match, self.tiles[y][x2])
@@ -75,17 +75,17 @@ export default class Board {
       }
     }
     for (let x = 0; x < 8; x++) {
-      let colorToMatch = this.tiles[0][x].color
+      let colorToMatch = this.tiles[0][x]!.color
       matchNum = 1
         // -- every vertical tile
       for (let y = 1; y < 8; y++) {
-        if (this.tiles[y][x].color === colorToMatch) {
+        if (this.tiles[y][x]!.color === colorToMatch) {
           matchNum++
         } else {
-          colorToMatch = this.tiles[y][x].color
+          colorToMatch = this.tiles[y][x]!.color
           if (matchNum >= 3) {
             let match = []
-            for (let y2 = y - 1; y2 >= (y - matchNum); y--) {
+            for (let y2 = y - 1; y2 >= (y - matchNum); y2--) {
               match.push(this.tiles[y2][x])
                         // table.insert(match, self.tiles[y2][x])
             }
@@ -118,7 +118,8 @@ export default class Board {
   removeMatches () {
     this.matches.forEach(match => {
       match.forEach(tile => {
-        this.tiles[tile.gridY][tile.gridX] = undefined
+        this.tiles[tile!.gridY][tile!.gridX] = undefined
+        this.container.removeChild(tile!.sprite)
       })
     })
     this.matches = []
@@ -131,7 +132,7 @@ export default class Board {
       let space = false
       let spaceY = 0
 
-      let y = 8
+      let y = 7
       while (y >= 0) {
             // -- if our last tile was a space...
         let tile = this.tiles[y][x]
@@ -143,6 +144,10 @@ export default class Board {
             tile.gridY = spaceY
                     // -- set its prior position to nil
             this.tiles[y][x] = undefined
+            tweens.push({
+              obj: tile,
+              to: {y: (tile.gridY) * 32}
+            })
                     // -- tween the Y position to 32 x its grid position
             // tweens[tile] = {
             //             y = (tile.gridY - 1) * 32
@@ -153,27 +158,32 @@ export default class Board {
             y = spaceY
                     // -- set this back to 0 so we know we don't have an active space
             spaceY = 0
-          } else if (tile === undefined) {
-            space = true
-                // -- if we haven't assigned a space yet, set this to it
-            if (spaceY === 0) {
-              spaceY = y
-            }
           }
-          y--
+        } else if (tile === undefined) {
+          space = true
+              // -- if we haven't assigned a space yet, set this to it
+          if (spaceY === 0) {
+            spaceY = y
+          }
         }
+        y--
       }
     }
         // -- create replacement tiles at the top of the screen
     for (let x = 0; x < 8; x++) {
-      for (let y = 8; y > 1; y--) {
+      for (let y = 7; y > 0; y--) {
         let tile = this.tiles[y][x]
             // -- if the tile is nil, we need to add a new one
         if (!tile) {
                 // -- new tile with random color and variety
-          let tile = new Tile(x, y, rand(18), rand(6))
+          tile = new Tile(x, y, rand(18), rand(6))
           tile.y = -32
+          this.container.addChild(tile.sprite)
           this.tiles[y][x] = tile
+          tweens.push({
+            obj: tile,
+            to: {y: (tile.gridY) * 32}
+          })
                 // -- create a new tween to return for this tile to fall down
                 // tweens[tile] = {
                 //     y = (tile.gridY - 1) * 32
