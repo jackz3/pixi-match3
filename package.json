@@ -11,9 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "@tweenjs/tween.js": "^18.4.2",
+    "howler": "^2.1.2",
     "pixi.js": "^5.2.0"
   },
   "devDependencies": {
+    "@types/howler": "^2.1.2",
     "@types/tween.js": "^17.2.0",
     "rollup-plugin-buble": "^0.19.8",
     "rollup-plugin-commonjs": "^10.0.2",

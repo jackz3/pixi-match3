@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js'
 import TWEEN from '@tweenjs/tween.js'
-import {BaseState, rand, hCenter} from '../utils'
+import {BaseState, hCenter} from '../utils'
 import global from '../global'
 import { VirtualScreen } from '../constants'
+import Board from '../Board'
 
 export default class StartState extends BaseState{
   currentMenuItem = 1
@@ -25,16 +26,27 @@ export default class StartState extends BaseState{
     // used to animate our full-screen transition rect
   transitionAlpha = 0
   pauseInput = false
-  colorTimer:NodeJS.Timeout
+  colorTimer!:NodeJS.Timeout
   bgGrahpics = new PIXI.Graphics()
   topG = new PIXI.Graphics()
   lettersTxt:PIXI.Text[] = []
   match3Txt:PIXI.Text = new PIXI.Text('MATCH 3')
   startTxt:PIXI.Text = new PIXI.Text('')
   quitTxt:PIXI.Text = new PIXI.Text('')
-  tiles:PIXI.Sprite[] = []
-  constructor (public container:PIXI.Container) {
+  // tiles:Tile[][] = []
+  board!:Board
+  constructor (public container:PIXI.Container, public boardContainer:PIXI.Container) {
     super()
+    // -- generate full table of tiles just for display
+    // for (let i = 0; i < 64; i++) {
+    //   const tile = global.frames.tiles[rand(18)][rand(6)]
+    //   const sprite = PIXI.Sprite.from(tile)
+    //   this.tiles.push(sprite)
+    //   this.container.addChild(sprite)
+    // }
+  }
+  enter () {
+    this.board = new Board(128, 16, this.boardContainer)
     this.colorTimer = setInterval(() => {
         let i = this.colors.length - 1
         const c6 = this.colors[i]
@@ -43,17 +55,6 @@ export default class StartState extends BaseState{
         }
         this.colors[0] = c6
     }, 75)
-
-    // -- generate full table of tiles just for display
-    for (let i = 0; i < 64; i++) {
-      const tile = global.frames.tiles[rand(18)][rand(6)]
-      const sprite = PIXI.Sprite.from(tile)
-      this.tiles.push(sprite)
-      this.container.addChild(sprite)
-    }
-
-  }
-  enter () {
     this.container.addChild(this.bgGrahpics)
     this.container.addChild(this.startTxt)
     this.container.addChild(this.quitTxt)
@@ -72,7 +73,12 @@ export default class StartState extends BaseState{
     this.container.removeChild(this.startTxt)
     this.container.removeChild(this.quitTxt)
     this.container.removeChild(...this.lettersTxt)
-    this.container.removeChild(...this.tiles)
+    this.lettersTxt = []
+    this.board.clear()
+    // this.container.removeChild(...this.tiles)
+    // for (let i = 0; i < 64; i++) {
+    //   this.tiles.
+    // }
   }
   update (delta:number) {
     // if love.keyboard.wasPressed('escape') then
@@ -82,16 +88,16 @@ export default class StartState extends BaseState{
     if (!this.pauseInput) {
       if (global.input.keyPressedSet.has('ArrowUp') || global.input.keyPressedSet.has('ArrowDown')) {
         this.currentMenuItem = this.currentMenuItem === 1 ? 2 : 1
+        global.sounds['select'].play()
       }
-        // -- switch to another state via one of the menu options
       if (global.input.keyPressedSet.has('Enter')) {
         if (this.currentMenuItem === 1) {
             new TWEEN.Tween(this).to({transitionAlpha: 1}, 1000)
                 .start()
                 .onComplete(() => {
-                  global.stateMachine.change('begin-game', {level: 1})
+                  global.stateMachine.change('begin-game', {level: 1, board: this.board})
+                  clearInterval(this.colorTimer)
                 })
-                clearInterval(this.colorTimer)
         } else {
                 // love.event.quit()
         }
@@ -100,20 +106,20 @@ export default class StartState extends BaseState{
     }
   }
   render () {
-    for (let y = 0; y < 8; y++) {
-      for (let x = 0; x < 8; x++) {
-          // -- render shadow first
-          // love.graphics.setColor(0, 0, 0, 255)
-          // love.graphics.draw(gTextures['main'], positions[(y - 1) * x + x], (x - 1) * 32 + 128 + 3, (y - 1) * 32 + 16 + 3)
-
-          // -- render tile
-          // love.graphics.setColor(255, 255, 255, 255)
-          // love.graphics.draw(gTextures['main'], positions[(y - 1) * x + x], 
-          //     (x - 1) * 32 + 128, (y - 1) * 32 + 16)
-        this.tiles[y * 8 + x].x = x * 32 + 128
-        this.tiles[y * 8 + x].y = y * 32 + 16
-      }
-    }
+    this.board.render()
+    // for (let y = 0; y < 8; y++) {
+    //   for (let x = 0; x < 8; x++) {
+    //       // -- render shadow first
+    //       // love.graphics.setColor(0, 0, 0, 255)
+    //       // love.graphics.draw(gTextures['main'], positions[(y - 1) * x + x], (x - 1) * 32 + 128 + 3, (y - 1) * 32 + 16 + 3)
+    //       // -- render tile
+    //       // love.graphics.setColor(255, 255, 255, 255)
+    //       // love.graphics.draw(gTextures['main'], positions[(y - 1) * x + x], 
+    //       //     (x - 1) * 32 + 128, (y - 1) * 32 + 16)
+    //     this.tiles[y * 8 + x].x = x * 32 + 128
+    //     this.tiles[y * 8 + x].y = y * 32 + 16
+    //   }
+    // }
     // -- keep the background and tiles a little darker than normal
     this.bgGrahpics.clear()
     this.bgGrahpics.beginFill(0, 0.5)
@@ -121,7 +127,6 @@ export default class StartState extends BaseState{
     this.bgGrahpics.endFill()
     this.drawMatch3Text(-60)
     this.drawOptions(12)
-
     // -- draw our transition rect; is normally fully transparent, unless we're moving to a new state
     this.topG.clear()
     this.topG.beginFill(0xFFFFFF, this.transitionAlpha)
@@ -133,7 +138,6 @@ export default class StartState extends BaseState{
     this.bgGrahpics.beginFill(0xFFFFFF, 0.5)
     this.bgGrahpics.drawRoundedRect(VirtualScreen.width / 2 - 76, VirtualScreen.height /2 + y - 11, 150, 58, 6)
     this.bgGrahpics.endFill()
-
     // -- draw MATCH 3 text shadows
     // love.graphics.setFont(gFonts['large'])
     // this.drawTextShadow(this.match3Txt, 'MATCH 3', VirtualScreen.height / 2 + y, VirtualScreen.width, 32, 'rgb(34,32,52)')

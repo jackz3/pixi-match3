@@ -39,7 +39,7 @@ export default class PlayState extends BaseState {
     // -- grab score from params if it was passed
     this.score = params.score || 0
     // -- score we have to reach to get to the next level
-    this.scoreGoal = this.level * 1.25 * 1000
+    this.scoreGoal = this.level * 1.25 * 100
     this.container.addChild(this.playG)
     this.container.addChild(this.levelTxt)
     this.container.addChild(this.scoreTxt)
@@ -54,7 +54,7 @@ export default class PlayState extends BaseState {
     this.countDownTimer = setInterval(() => {
       this.timer--
       if (this.timer <= 5) {
-            // gSounds['clock']:play()
+          global.sounds['clock'].play()
       }
     }, 1000)
   }
@@ -64,14 +64,14 @@ export default class PlayState extends BaseState {
     this.container.removeChild(this.scoreTxt)
     this.container.removeChild(this.goalTxt)
     this.container.removeChild(this.timerTxt)
+    this.board.clear()
   }
   update (delta:number) {
     // -- go back to start if time runs out
     if (this.timer <= 0) {
-        // -- clear timers from prior PlayStates
       clearInterval(this.hlTimer)
       clearInterval(this.countDownTimer)
-        // gSounds['game-over']:play()
+      global.sounds['game-over'].play()
 
       global.stateMachine.change('game-over', {
         score: this.score
@@ -79,34 +79,28 @@ export default class PlayState extends BaseState {
     }
     // -- go to next level if we surpass score goal
     if (this.score >= this.scoreGoal) {
-        // -- clear timers from prior PlayStates
-        // -- always clear before you change state, else next state's timers
-        // -- will also clear!
       clearInterval(this.hlTimer)
       clearInterval(this.countDownTimer)
-
-        // gSounds['next-level']:play()
-
-        // -- change to begin game state with new level (incremented)
+      global.sounds['next-level'].play()
       global.stateMachine.change('begin-game', {
         level: this.level + 1,
-        score: this.score
+        score: this.score,
+        board: this.board
       })
     }
     if (this.canInput) {
-        // -- move cursor around based on bounds of grid, playing sounds
       if (global.input.keyPressedSet.has('ArrowUp')) {
         this.boardHighlightY = Math.max(0, this.boardHighlightY - 1)
-            // gSounds['select']:play()
+        global.sounds['select'].play()
       } else if (global.input.keyPressedSet.has('ArrowDown')) {
         this.boardHighlightY = Math.min(7, this.boardHighlightY + 1)
-            // gSounds['select']:play()
+        global.sounds['select'].play()
       } else if (global.input.keyPressedSet.has('ArrowLeft')) {
         this.boardHighlightX = Math.max(0, this.boardHighlightX - 1)
-            // gSounds['select']:play()
+        global.sounds['select'].play()
       } else if (global.input.keyPressedSet.has('ArrowRight')) {
         this.boardHighlightX = Math.min(7, this.boardHighlightX + 1)
-            // gSounds['select']:play()
+        global.sounds['select'].play()
       }
         // -- if we've pressed enter, to select or deselect a tile...
       if (global.input.keyPressedSet.has('Enter')) {
@@ -122,7 +116,7 @@ export default class PlayState extends BaseState {
             // -- if the difference between X and Y combined of this highlighted tile
             // -- vs the previous is not equal to 1, also remove highlight
         } else if (Math.abs(this.highlightedTile.gridX - x) + Math.abs(this.highlightedTile.gridY - y) > 1) {
-                // gSounds['error']:play()
+          global.sounds['error'].play()
           this.highlightedTile = undefined
         } else {
                 // -- swap grid positions of tiles
@@ -141,7 +135,7 @@ export default class PlayState extends BaseState {
                 // -- tween coordinates between the two so they swap
             new TWEEN.Tween(this.highlightedTile).to({x: newTile.x, y: newTile.y}, 100).start()
               .onComplete(() => {
-                this.highlightedTile = undefined
+                // this.highlightedTile = undefined
                 this.calculateMatches()
               })
             new TWEEN.Tween(newTile).to({x: this.highlightedTile.x, y: this.highlightedTile.y}, 100).start()
@@ -216,8 +210,8 @@ export default class PlayState extends BaseState {
     let matches = this.board.calculateMatches()
     
     if (matches) {
-        // gSounds['match']:stop()
-        // gSounds['match']:play()
+        global.sounds['match'].stop()
+        global.sounds['match'].play()
         // -- add score for each match
       matches.forEach(tiles => {
         this.score += tiles.length * 50
@@ -232,9 +226,9 @@ export default class PlayState extends BaseState {
       let tilesToFall = this.board.getFallingTiles()
       const len = tilesToFall.length;
       if (len > 0) {
-        new TWEEN.Tween(tilesToFall[0]).to(tilesToFall[0], 250).start()
+        new TWEEN.Tween(tilesToFall[0].obj).to(tilesToFall[0].to, 250).start()
           .onComplete(() => {
-            // this.calculateMatches()
+            this.calculateMatches()
           })
       }
       for (let i = 1; i < len; i++) {

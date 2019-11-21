@@ -6,9 +6,11 @@ export default class Board {
   matches:(Tile|undefined)[][] = []
   tiles:(Tile|undefined)[][] = []
   constructor (public x:number, public y:number, public container:PIXI.Container) {
-    this.initializeTiles()
+    this.initializeTiles(x, y)
   }
-  initializeTiles () {
+  initializeTiles (x:number, y:number) {
+    this.x = x
+    this.y = y
     this.tiles = []
     for (let tileY = 0; tileY < 8; tileY++) {
       this.tiles.push([])
@@ -21,10 +23,14 @@ export default class Board {
     }
 
     while (this.calculateMatches().length) {
+      this.clear()
         // -- recursively initialize if matches were returned so we always have
         // -- a matchless board on start
-      this.initializeTiles()
+      this.initializeTiles(x, y)
     }
+  }
+  clear () {
+    this.container.removeChildren()
   }
   calculateMatches () {
     let matches = []
@@ -171,7 +177,7 @@ export default class Board {
     }
         // -- create replacement tiles at the top of the screen
     for (let x = 0; x < 8; x++) {
-      for (let y = 7; y > 0; y--) {
+      for (let y = 7; y >= 0; y--) {
         let tile = this.tiles[y][x]
             // -- if the tile is nil, we need to add a new one
         if (!tile) {

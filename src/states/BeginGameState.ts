@@ -9,15 +9,16 @@ export default class BeginGameState extends BaseState {
   transitionAlpha = 1
   levelLabelY = -64
   level = 0
-  board:Board
+  board!:Board
   beginG = new PIXI.Graphics()
   levelTxt = new PIXI.Text('', {fill: '#FFFFFF', fontSize: 28})
   constructor (public container:PIXI.Container) {
     super()
-    container.visible = false
-    this.board = new Board(VirtualScreen.width - 272, 16, container)
+    // this.board = new Board(VirtualScreen.width - 272, 16, container)
   }
   enter (params:any) {
+    this.board = params.board
+    this.board.initializeTiles(VirtualScreen.width - 272, 16)
     this.container.addChild(this.beginG)
     this.container.addChild(this.levelTxt)
     this.container.visible = true
