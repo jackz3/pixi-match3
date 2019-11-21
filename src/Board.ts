@@ -3,8 +3,8 @@ import {rand} from './utils'
 import Tile from './Tile'
 
 export default class Board {
-  matches:(Tile|undefined)[][] = []
-  tiles:(Tile|undefined)[][] = []
+  matches:Tile[][] = []
+  tiles:Tile[][] = []
   constructor (public x:number, public y:number, public container:PIXI.Container) {
     this.initializeTiles(x, y)
   }
@@ -38,17 +38,17 @@ export default class Board {
     let matchNum = 1
     // -- horizontal matches first
     for (let y = 0; y < 8; y++) {
-      let colorToMatch = this.tiles[y][0]!.color
+      let colorToMatch = this.tiles[y][0].color
       matchNum = 1
         // -- every horizontal tile
       for (let x = 1; x < 8; x++) {
         // -- if this is the same color as the one we're trying to match...
 
-        if (this.tiles[y][x]!.color === colorToMatch) {
+        if (this.tiles[y][x].color === colorToMatch) {
           matchNum++
         } else {
                 // -- set this as the new color we want to watch for
-          colorToMatch = this.tiles[y][x]!.color
+          colorToMatch = this.tiles[y][x].color
           // -- if we have a match of 3 or more up to now, add it to our matches table
           if (matchNum >= 3) {
             let match = []
@@ -81,14 +81,14 @@ export default class Board {
       }
     }
     for (let x = 0; x < 8; x++) {
-      let colorToMatch = this.tiles[0][x]!.color
+      let colorToMatch = this.tiles[0][x].color
       matchNum = 1
         // -- every vertical tile
       for (let y = 1; y < 8; y++) {
-        if (this.tiles[y][x]!.color === colorToMatch) {
+        if (this.tiles[y][x].color === colorToMatch) {
           matchNum++
         } else {
-          colorToMatch = this.tiles[y][x]!.color
+          colorToMatch = this.tiles[y][x].color
           if (matchNum >= 3) {
             let match = []
             for (let y2 = y - 1; y2 >= (y - matchNum); y2--) {
@@ -124,8 +124,8 @@ export default class Board {
   removeMatches () {
     this.matches.forEach(match => {
       match.forEach(tile => {
-        this.tiles[tile!.gridY][tile!.gridX] = undefined
-        this.container.removeChild(tile!.sprite)
+        this.tiles[tile.gridY][tile.gridX].toBeDel = true
+        this.container.removeChild(tile.sprite)
       })
     })
     this.matches = []
@@ -144,12 +144,13 @@ export default class Board {
         let tile = this.tiles[y][x]
         if (space) {
                 // -- if the current tile is *not* a space, bring this down to the lowest space
-          if (tile) {
+          if (!tile.toBeDel) {
                     // -- put the tile in the correct spot in the board and fix its grid positions
+            const tmpTile = this.tiles[spaceY][x]
             this.tiles[spaceY][x] = tile
             tile.gridY = spaceY
-                    // -- set its prior position to nil
-            this.tiles[y][x] = undefined
+            // -- set its prior position to nil
+            this.tiles[y][x] = tmpTile// = undefined
             tweens.push({
               obj: tile,
               to: {y: (tile.gridY) * 32}
@@ -165,9 +166,9 @@ export default class Board {
                     // -- set this back to 0 so we know we don't have an active space
             spaceY = 0
           }
-        } else if (tile === undefined) {
+        } else if (tile.toBeDel) {
           space = true
-              // -- if we haven't assigned a space yet, set this to it
+          // -- if we haven't assigned a space yet, set this to it
           if (spaceY === 0) {
             spaceY = y
           }
@@ -180,7 +181,7 @@ export default class Board {
       for (let y = 7; y >= 0; y--) {
         let tile = this.tiles[y][x]
             // -- if the tile is nil, we need to add a new one
-        if (!tile) {
+        if (tile.toBeDel) {
                 // -- new tile with random color and variety
           tile = new Tile(x, y, rand(18), rand(6))
           tile.y = -32
@@ -202,7 +203,7 @@ export default class Board {
   render () {
     for (let y = 0; y < this.tiles.length; y++) {
       for (let x = 0; x < this.tiles[1].length; x++) {
-        this.tiles[y][x]?.render(this.x, this.y)
+        this.tiles[y][x].render(this.x, this.y)
       }
     }
   }

@@ -39,7 +39,7 @@ export default class PlayState extends BaseState {
     // -- grab score from params if it was passed
     this.score = params.score || 0
     // -- score we have to reach to get to the next level
-    this.scoreGoal = this.level * 1.25 * 100
+    this.scoreGoal = this.level * 1.25 * 100 * 2
     this.container.addChild(this.playG)
     this.container.addChild(this.levelTxt)
     this.container.addChild(this.scoreTxt)
