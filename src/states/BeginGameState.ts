@@ -9,6 +9,7 @@ export default class BeginGameState extends BaseState {
   transitionAlpha = 1
   levelLabelY = -64
   level = 0
+  score = 0
   board!:Board
   beginG = new PIXI.Graphics()
   levelTxt = new PIXI.Text('', {fill: '#FFFFFF', fontSize: 28})
@@ -17,12 +18,13 @@ export default class BeginGameState extends BaseState {
     // this.board = new Board(VirtualScreen.width - 272, 16, container)
   }
   enter (params:any) {
+    this.level = params.level
+    this.score = params.score
     this.board = params.board
-    this.board.initializeTiles(VirtualScreen.width - 272, 16)
+    this.board.initializeTiles(VirtualScreen.width - 272, 16, this.level)
     this.container.addChild(this.beginG)
     this.container.addChild(this.levelTxt)
     this.container.visible = true
-    this.level = params.level
     this.levelLabelY = -64
     // -- animate our white screen fade-in, then animate a drop-down with
     // -- the level text
@@ -32,7 +34,7 @@ export default class BeginGameState extends BaseState {
           .onComplete(() => {
             new TWEEN.Tween(this).to({levelLabelY: VirtualScreen.height + 30}, 250).delay(1000).start()
               .onComplete(() => {
-                global.stateMachine.change('play', {level: this.level, board: this.board})
+                global.stateMachine.change('play', {level: this.level, board: this.board, score: this.score})
               })
           })
       })

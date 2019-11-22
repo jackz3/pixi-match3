@@ -8,12 +8,17 @@ export default class Tile {
   y:number
   sprite:PIXI.Sprite
   toBeDel = false
+  shiny:boolean
   constructor (x:number, y:number, public color:number, public variety:number) {
+    this.shiny = Math.random() > 0.95
     this.gridX = x
     this.gridY = y 
     this.x = this.gridX * 32
     this.y = this.gridY * 32
     this.sprite = PIXI.Sprite.from(global.frames.tiles[this.color][this.variety])
+    if (this.shiny) {
+      this.sprite.alpha = 0.7
+    }
   }
   render (x:number, y:number) {
     // -- draw shadow

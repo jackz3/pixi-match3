@@ -39,7 +39,7 @@ export default class PlayState extends BaseState {
     // -- grab score from params if it was passed
     this.score = params.score || 0
     // -- score we have to reach to get to the next level
-    this.scoreGoal = this.level * 1.25 * 100 * 3
+    this.scoreGoal = this.level * 1.25 * 100 * 6
     this.container.addChild(this.playG)
     this.container.addChild(this.levelTxt)
     this.container.addChild(this.scoreTxt)
@@ -216,6 +216,8 @@ export default class PlayState extends BaseState {
       matches.forEach(tiles => {
         this.score += tiles.length * 50
       })
+      this.timer += matches.reduce((res, x) => res + x.length, 0)
+
       // for k, match in pairs(matches) do
       //       self.score = self.score + #match * 50
       //   end

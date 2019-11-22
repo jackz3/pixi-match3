@@ -6,19 +6,21 @@ import {Screen} from './constants'
 export default class Board {
   matches:Tile[][] = []
   tiles:Tile[][] = []
+  level = 1
   renderTexture = PIXI.RenderTexture.create({width: Screen.width, height: Screen.height})
   constructor (public x:number, public y:number, public container:PIXI.Container, public renderer:PIXI.Renderer) {
     this.initializeTiles(x, y)
   }
-  initializeTiles (x:number, y:number) {
+  initializeTiles (x:number, y:number, level:number = 6) {
     this.x = x
     this.y = y
+    this.level = level
     this.tiles = []
     for (let tileY = 0; tileY < 8; tileY++) {
       this.tiles.push([])
       for (let tileX = 0; tileX < 8; tileX++) {
           // -- create a new tile at X,Y with a random color and variety
-        const tile = new Tile(tileX, tileY, rand(18), rand(6))
+        const tile = new Tile(tileX, tileY, rand(18), rand(this.level % 7))
         this.tiles[tileY].push(tile)
         this.container.addChild(tile.sprite)
       }
@@ -28,7 +30,7 @@ export default class Board {
       this.clear()
         // -- recursively initialize if matches were returned so we always have
         // -- a matchless board on start
-      this.initializeTiles(x, y)
+      this.initializeTiles(x, y, this.level)
     }
 
     const opts = {
@@ -53,7 +55,8 @@ export default class Board {
     this.container.removeChildren()
   }
   calculateMatches () {
-    let matches = []
+    const shinies:number[] = []
+    const matches = []
     // -- how many of the same color blocks in a row we've found
     let matchNum = 1
     // -- horizontal matches first
@@ -74,9 +77,14 @@ export default class Board {
             let match = []
                     // -- go backwards from here by matchNum
             for (let x2 = x - 1; x2 >= (x - matchNum); x2--) {
-                        // -- add each tile to the match that's in that match
-              match.push(this.tiles[y][x2])
-                        // table.insert(match, self.tiles[y][x2])
+              // -- add each tile to the match that's in that match
+              const tile = this.tiles[y][x2]
+              if (tile.shiny && !shinies.includes(tile.gridY)) {
+                match = Array(8).fill(1).map((x, i) => this.tiles[y][i])
+                shinies.push(tile.gridY)
+                break
+              }
+              match.push(tile)
             }
             matches.push(match)
           }
@@ -108,8 +116,13 @@ export default class Board {
           if (matchNum >= 3) {
             let match = []
             for (let y2 = y - 1; y2 >= (y - matchNum); y2--) {
-              match.push(this.tiles[y2][x])
-                        // table.insert(match, self.tiles[y2][x])
+              const tile = this.tiles[y2][x]
+              if (tile.shiny && !shinies.includes(tile.gridY)) {
+                match.push(...Array(8).fill(1).map((x, i) => this.tiles[y2][i]))
+                shinies.push(tile.gridY)
+              } else {
+                match.push(tile)
+              }
             }
             matches.push(match)
                     // table.insert(matches, match)
@@ -131,6 +144,13 @@ export default class Board {
         matches.push(match)
       }
     }
+    matches.forEach(tiles => {
+      tiles.forEach(tile => {
+        if (tile.shiny) {
+
+        }
+      })
+    })
     this.matches = matches
     // -- return matches table if > 0, else just return false
     return this.matches
@@ -195,7 +215,7 @@ export default class Board {
         let tile = this.tiles[y][x]
             // -- if the tile is nil, we need to add a new one
         if (tile.toBeDel) {
-          tile = new Tile(x, y, rand(18), rand(6))
+          tile = new Tile(x, y, rand(18), rand(this.level % 7))
           tile.y = -32
           this.container.addChild(tile.sprite)
           this.tiles[y][x] = tile
