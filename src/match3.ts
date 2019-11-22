@@ -55,7 +55,7 @@ const spriteSheet = new PIXI.Spritesheet(baseTexture, spriteSheetData)
 spriteSheet.parse(frames => {
   global.frames.tiles = generateTileQuads(frames)
   global.stateMachine.states = {
-    'start': new StartState(app.stage, boardContainer),
+    'start': new StartState(app.stage, boardContainer, app.renderer),
     'begin-game': new BeginGameState(boardContainer),
     'play': new PlayState(app.stage),
     'game-over': new GameOverState(app.stage)

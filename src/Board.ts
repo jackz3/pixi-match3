@@ -1,11 +1,13 @@
 import * as PIXI from 'pixi.js'
 import {rand} from './utils'
 import Tile from './Tile'
+import {Screen} from './constants'
 
 export default class Board {
   matches:Tile[][] = []
   tiles:Tile[][] = []
-  constructor (public x:number, public y:number, public container:PIXI.Container) {
+  renderTexture = PIXI.RenderTexture.create({width: Screen.width, height: Screen.height})
+  constructor (public x:number, public y:number, public container:PIXI.Container, public renderer:PIXI.Renderer) {
     this.initializeTiles(x, y)
   }
   initializeTiles (x:number, y:number) {
@@ -28,6 +30,24 @@ export default class Board {
         // -- a matchless board on start
       this.initializeTiles(x, y)
     }
+
+    const opts = {
+      alpha: 0.7,
+      blur: 2,
+      color: 0x000000,
+      distance: 2,
+      quality: 4
+    }
+    const blurFilter = new PIXI.filters.BlurFilter(opts.blur, opts.quality)
+    // const bounds = this.boardContainer.getBounds()
+    // const renderTexture = PIXI.RenderTexture.create({width: bounds.right, height: bounds.bottom})
+    const dropShadow = new PIXI.Sprite(this.renderTexture)
+    dropShadow.x = opts.distance
+    dropShadow.y = opts.distance
+    dropShadow.alpha = opts.alpha
+    dropShadow.filters = [blurFilter]
+    dropShadow.tint = opts.color
+    this.container.addChildAt(dropShadow, 0)
   }
   clear () {
     this.container.removeChildren()
@@ -58,9 +78,7 @@ export default class Board {
               match.push(this.tiles[y][x2])
                         // table.insert(match, self.tiles[y][x2])
             }
-                    // -- add this match to our total matches table
             matches.push(match)
-                    // table.insert(matches, match)
           }
           matchNum = 1
                 // -- don't need to check last two if they won't be in a match
@@ -74,10 +92,8 @@ export default class Board {
             // -- go backwards from end of last row by matchNum
         for (let x = 7; x >= 8 - matchNum; x--) {
           match.push(this.tiles[y][x])
-                // table.insert(match, self.tiles[y][x])
         }
         matches.push(match)
-            // table.insert(matches, match)
       }
     }
     for (let x = 0; x < 8; x++) {
@@ -111,10 +127,8 @@ export default class Board {
             // -- go backwards from end of last row by matchNum
         for (let y = 7; y >= 8 - matchNum; y--) {
           match.push(this.tiles[y][x])
-                // table.insert(match, self.tiles[y][x])
         }
         matches.push(match)
-            // table.insert(matches, match)
       }
     }
     this.matches = matches
@@ -155,11 +169,10 @@ export default class Board {
               obj: tile,
               to: {y: (tile.gridY) * 32}
             })
-                    // -- tween the Y position to 32 x its grid position
+            // -- tween the Y position to 32 x its grid position
             // tweens[tile] = {
             //             y = (tile.gridY - 1) * 32
             //         }
-
                     // -- set Y to spaceY so we start back from here again
             space = false
             y = spaceY
@@ -182,7 +195,6 @@ export default class Board {
         let tile = this.tiles[y][x]
             // -- if the tile is nil, we need to add a new one
         if (tile.toBeDel) {
-                // -- new tile with random color and variety
           tile = new Tile(x, y, rand(18), rand(6))
           tile.y = -32
           this.container.addChild(tile.sprite)
@@ -206,5 +218,6 @@ export default class Board {
         this.tiles[y][x].render(this.x, this.y)
       }
     }
+    this.renderer.render(this.container, this.renderTexture)
   }
 }

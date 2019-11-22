@@ -20,7 +20,6 @@ export default class Tile {
     // love.graphics.setColor(34, 32, 52, 255)
     // love.graphics.draw(gTextures['main'], gFrames['tiles'][this.color][this.variety],
     //     this.x + x + 2, this.y + y + 2)
-
     // -- draw tile itthis
     // love.graphics.setColor(255, 255, 255, 255)
     // love.graphics.draw(gTextures['main'], gFrames['tiles'][this.color][this.variety],

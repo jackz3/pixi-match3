@@ -1,22 +1,24 @@
 import * as PIXI from 'pixi.js'
-import {BaseState, rand, hCenter, rgbToNum} from '../utils'
+import {BaseState, hCenter, rgbToNum} from '../utils'
 import global from '../global'
 import { VirtualScreen } from '../constants'
 
 export default class GameOverState extends BaseState {
   score = 0
   gameoverG = new PIXI.Graphics()
-  goTxt = new PIXI.Text('GAME\nOVER', {fontSize: 28, fill: 'rgb(99,155,255)', align: 'center', fontWeight: 'bold'})
-  scoreTxt = new PIXI.Text('', {fontSize: 14, fill: 'rgb(99,155,255)'})
-  msgTxt = new PIXI.Text('Press Enter', {fontSize: 14})
+  goTxt = new PIXI.Text('GAME\nOVER', {fontSize: 28, fill: 'rgb(99,155,255)', fontWeight: 'bold'})
+  scoreTxt = new PIXI.Text('', {fontSize: 14, fill: 'rgb(99,155,255)', align: 'center'})
+  msgTxt = new PIXI.Text('Press Enter', {fontSize: 14, fill: 'rgb(99,155,255)'})
   constructor (public container:PIXI.Container) {
     super()
     this.goTxt.x = VirtualScreen.width / 2 - 64
     this.goTxt.y = 64
+    hCenter(this.goTxt, VirtualScreen.width)
     this.scoreTxt.x = VirtualScreen.width / 2 - 64
     this.scoreTxt.y = 140
     this.msgTxt.x = VirtualScreen.width / 2 - 64
     this.msgTxt.y = 180
+    hCenter(this.msgTxt, VirtualScreen.width)
   }
   enter (params:any) {
     this.score = params.score
@@ -41,5 +43,6 @@ export default class GameOverState extends BaseState {
     this.gameoverG.beginFill(rgbToNum(56,56,56), 234 / 255)
     this.gameoverG.drawRoundedRect(VirtualScreen.width / 2 - 64, 64, 128, 136, 4)
     this.scoreTxt.text = `Your Score: \n${this.score}`
+    hCenter(this.scoreTxt, VirtualScreen.width)
   }
 }

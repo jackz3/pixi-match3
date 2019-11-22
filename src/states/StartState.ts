@@ -35,7 +35,7 @@ export default class StartState extends BaseState{
   quitTxt:PIXI.Text = new PIXI.Text('')
   // tiles:Tile[][] = []
   board!:Board
-  constructor (public container:PIXI.Container, public boardContainer:PIXI.Container) {
+  constructor (public container:PIXI.Container, public boardContainer:PIXI.Container, public renderer:PIXI.Renderer) {
     super()
     // -- generate full table of tiles just for display
     // for (let i = 0; i < 64; i++) {
@@ -46,7 +46,7 @@ export default class StartState extends BaseState{
     // }
   }
   enter () {
-    this.board = new Board(128, 16, this.boardContainer)
+    this.board = new Board(128, 16, this.boardContainer, this.renderer)
     this.colorTimer = setInterval(() => {
         let i = this.colors.length - 1
         const c6 = this.colors[i]
@@ -66,6 +66,7 @@ export default class StartState extends BaseState{
     this.container.addChild(this.topG)
     this.transitionAlpha = 0
     this.pauseInput = false
+
   }
   exit () {
     this.container.removeChild(this.topG)
@@ -75,10 +76,6 @@ export default class StartState extends BaseState{
     this.container.removeChild(...this.lettersTxt)
     this.lettersTxt = []
     this.board.clear()
-    // this.container.removeChild(...this.tiles)
-    // for (let i = 0; i < 64; i++) {
-    //   this.tiles.
-    // }
   }
   update (delta:number) {
     // if love.keyboard.wasPressed('escape') then
