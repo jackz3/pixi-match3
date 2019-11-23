@@ -39,7 +39,7 @@ export default class PlayState extends BaseState {
     // -- grab score from params if it was passed
     this.score = params.score || 0
     // -- score we have to reach to get to the next level
-    this.scoreGoal = this.level * 1.25 * 100 * 6
+    this.scoreGoal = this.level * 1.25 * 100 * 5
     this.container.addChild(this.playG)
     this.container.addChild(this.levelTxt)
     this.container.addChild(this.scoreTxt)
@@ -53,7 +53,7 @@ export default class PlayState extends BaseState {
     }, 500)
     this.countDownTimer = setInterval(() => {
       this.timer--
-      if (this.timer <= 5) {
+      if (this.timer <= 5 && this.timer >= 0) {
           global.sounds['clock'].play()
       }
     }, 1000)
@@ -120,23 +120,20 @@ export default class PlayState extends BaseState {
           this.highlightedTile = undefined
         } else {
                 // -- swap grid positions of tiles
-          let tempX = this.highlightedTile.gridX
-          let tempY = this.highlightedTile.gridY
+          let newTile = this.board.tiles[y][x]
 
-          let newTile = this.board.tiles[y][x] as Tile
-          this.highlightedTile.gridX = newTile.gridX
-          this.highlightedTile.gridY = newTile.gridY
-          newTile.gridX = tempX
-          newTile.gridY = tempY
-                // -- swap tiles in the tiles table
-          this.board.tiles[this.highlightedTile.gridY][this.highlightedTile.gridX] = this.highlightedTile
-
-          this.board.tiles[newTile.gridY][newTile.gridX] = newTile
-                // -- tween coordinates between the two so they swap
+          this.swap2Tiles(newTile, this.highlightedTile)
+            // -- tween coordinates between the two so they swap
             new TWEEN.Tween(this.highlightedTile).to({x: newTile.x, y: newTile.y}, 100).start()
               .onComplete(() => {
-                // this.highlightedTile = undefined
-                this.calculateMatches()
+                if (!this.calculateMatches()) {
+                  setTimeout(() => {
+                    const tile = this.board.tiles[y][x]
+                    this.swap2Tiles(newTile, tile)
+                    new TWEEN.Tween(tile).to({x: newTile.x, y: newTile.y}, 100).start()
+                    new TWEEN.Tween(newTile).to({x: tile.x, y: tile.y}, 100).start()
+                  }, 30)
+                }
               })
             new TWEEN.Tween(newTile).to({x: this.highlightedTile.x, y: this.highlightedTile.y}, 100).start()
                 // Timer.tween(0.1, {
@@ -147,6 +144,18 @@ export default class PlayState extends BaseState {
       }
     }
   }
+  private swap2Tiles(newTile: Tile, highlightedTile:Tile) {
+    let tempX = highlightedTile.gridX
+    let tempY = highlightedTile.gridY
+    highlightedTile.gridX = newTile.gridX
+    highlightedTile.gridY = newTile.gridY
+    newTile.gridX = tempX
+    newTile.gridY = tempY
+    // -- swap tiles in the tiles table
+    this.board.tiles[highlightedTile.gridY][highlightedTile.gridX] = highlightedTile
+    this.board.tiles[newTile.gridY][newTile.gridX] = newTile
+  }
+
   render() {
     // -- render board of tiles
     this.board.render()
@@ -248,5 +257,6 @@ export default class PlayState extends BaseState {
     } else {
       this.canInput = true
     }
+    return matches.length > 0
   }
 }

@@ -20,13 +20,14 @@ export default class Board {
       this.tiles.push([])
       for (let tileX = 0; tileX < 8; tileX++) {
           // -- create a new tile at X,Y with a random color and variety
-        const tile = new Tile(tileX, tileY, rand(18), rand(this.level % 7))
+        const tile = new Tile(tileX, tileY, rand((this.level + 9) % 17, 2), rand(this.level % 7))
         this.tiles[tileY].push(tile)
         this.container.addChild(tile.sprite)
       }
     }
 
     while (this.calculateMatches().length) {
+      console.log('m')
       this.clear()
         // -- recursively initialize if matches were returned so we always have
         // -- a matchless board on start
@@ -215,7 +216,7 @@ export default class Board {
         let tile = this.tiles[y][x]
             // -- if the tile is nil, we need to add a new one
         if (tile.toBeDel) {
-          tile = new Tile(x, y, rand(18), rand(this.level % 7))
+          tile = new Tile(x, y, rand((this.level + 9) % 17, 2), rand(this.level % 7))
           tile.y = -32
           this.container.addChild(tile.sprite)
           this.tiles[y][x] = tile

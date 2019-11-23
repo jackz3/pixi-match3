@@ -61,7 +61,7 @@ spriteSheet.parse(frames => {
     'game-over': new GameOverState(app.stage)
   }
   global.stateMachine.change('start')
-  // global.sounds['music'].play()
+  global.sounds['music'].play()
 
   app.ticker.add((delta) => {
     backgroundX = backgroundX - BACKGROUND_SCROLL_SPEED * delta / 60

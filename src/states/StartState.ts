@@ -96,7 +96,7 @@ export default class StartState extends BaseState{
                   clearInterval(this.colorTimer)
                 })
         } else {
-                // love.event.quit()
+          window.location.href = 'https://google.com'
         }
         this.pauseInput = true
       }

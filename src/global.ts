@@ -18,7 +18,7 @@ const global:Global = {
   stateMachine: new StateMachine(),
   input: new Input(),
   sounds: {
-    'music': new Howl({src: ['../assets/music.mp3'], loop: true}),
+    'music': new Howl({src: ['../assets/music2.mp3'], loop: true}),
     'select': new Howl({src: ['../assets/select.wav']}),
     'error': new Howl({src: ['../assets/error.wav']}),
     'match': new Howl({src: ['../assets/match.wav']}),
